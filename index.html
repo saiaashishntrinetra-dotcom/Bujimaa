@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050507">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>private.transmission</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+:root{
+    --bg:#050507;
+    --text:#f4f4f7;
+    --muted:#777780;
+    --dim:#45454d;
+    --glass:#ffffff08;
+    --line:#ffffff12;
+    --pink:#ff9db7;
+    --green:#9dffba;
+    --red:#ff8c8c;
+}
+
+html{
+    scroll-behavior:smooth;
+    background:var(--bg);
+}
+
+body{
+    min-height:100vh;
+    min-height:100dvh;
+    background:
+        radial-gradient(circle at 50% 18%,#ff9db709,transparent 32%),
+        radial-gradient(circle at 10% 85%,#ffffff04,transparent 25%),
+        var(--bg);
+    color:var(--text);
+    font-family:"DM Sans",sans-serif;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+}
+
+button,
+a{
+    font:inherit;
+}
+
+.ambient{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    overflow:hidden;
+    z-index:-3;
+    transition:transform 1s ease;
+}
+
+.ambient::before{
+    content:"";
+    position:absolute;
+    width:min(700px,100vw);
+    height:min(700px,100vw);
+    left:50%;
+    top:15%;
+    transform:translate(-50%,-50%);
+    border-radius:50%;
+    background:#ff9db708;
+    filter:blur(130px);
+    animation:ambientPulse 8s ease-in-out infinite;
+}
+
+@keyframes ambientPulse{
+    0%,100%{
+        opacity:.4;
+        transform:translate(-50%,-50%) scale(1);
+    }
+    50%{
+        opacity:.8;
+        transform:translate(-50%,-50%) scale(1.15);
+    }
+}
+
+.grid{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    opacity:.07;
+    background-image:
+        linear-gradient(#fff 1px,transparent 1px),
+        linear-gradient(90deg,#fff 1px,transparent 1px);
+    background-size:80px 80px;
+    mask-image:linear-gradient(to bottom,#000,transparent 85%);
+    -webkit-mask-image:linear-gradient(to bottom,#000,transparent 85%);
+}
+
+.noise{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:50;
+    opacity:.02;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.particle{
+    position:fixed;
+    width:2px;
+    height:2px;
+    border-radius:50%;
+    background:white;
+    opacity:0;
+    pointer-events:none;
+    animation:particleFloat linear infinite;
+}
+
+@keyframes particleFloat{
+    0%{
+        transform:translateY(105vh) scale(.3);
+        opacity:0;
+    }
+    15%{
+        opacity:.5;
+    }
+    80%{
+        opacity:.15;
+    }
+    100%{
+        transform:translateY(-10vh) scale(1);
+        opacity:0;
+    }
+}
+
+.boot{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:25px;
+    background:#050507;
+    transition:opacity 1s ease,visibility 1s ease;
+}
+
+.boot.hide{
+    opacity:0;
+    visibility:hidden;
+}
+
+.boot-content{
+    width:min(420px,100%);
+}
+
+.boot-top{
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+    color:#45454d;
+    font-family:"JetBrains Mono",monospace;
+    font-size:9px;
+    letter-spacing:2px;
+    margin-bottom:25px;
+}
+
+.boot-line{
+    height:1px;
+    background:#ffffff0d;
+    overflow:hidden;
+}
+
+.boot-progress{
+    width:0;
+    height:100%;
+    background:var(--pink);
+    box-shadow:0 0 15px var(--pink);
+    animation:bootProgress 2.5s ease forwards;
+}
+
+@keyframes bootProgress{
+    to{
+        width:100%;
+    }
+}
+
+.boot-text{
+    margin-top:20px;
+    font-family:"JetBrains Mono",monospace;
+    font-size:10px;
+    color:#777780;
+}
+
+main{
+    position:relative;
+    width:min(880px,calc(100% - 40px));
+    margin:auto;
+    padding:
+        max(25px,env(safe-area-inset-top))
+        0
+        max(80px,env(safe-area-inset-bottom));
+}
+
+.nav{
+    min-height:55px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    border-bottom:1px solid var(--line);
+    color:#50505a;
+    font-family:"JetBrains Mono",monospace;
+    font-size:9px;
+    letter-spacing:2px;
+}
+
+.connection{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    white-space:nowrap;
+}
+
+.connection-dot{
+    width:5px;
+    height:5px;
+    flex:0 0 5px;
+    border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 8px var(--green);
+    animation:connectionBlink 2s infinite;
+}
+
+@keyframes connectionBlink{
+    0%,100%{
+        opacity:1;
+    }
+    50%{
+        opacity:.3;
+    }
+}
+
+.hero{
+    min-height:calc(100svh - 55px);
+    min-height:calc(100dvh - 55px);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:70px 0;
+}
+
+.hero-label{
+    max-width:90%;
+    font-family:"JetBrains Mono",monospace;
+    font-size:9px;
+    line-height:1.6;
+    letter-spacing:3px;
+    color:#5b5b65;
+    margin-bottom:30px;
+    opacity:0;
+    animation:fadeUp 1s 2.7s forwards;
+}
+
+.hero h1{
+    max-width:850px;
+    font-size:clamp(42px,8vw,86px);
+    line-height:.95;
+    letter-spacing:clamp(-5px,-.5vw,-2px);
+    font-weight:400;
+    opacity:0;
+    animation:fadeUp 1.2s 2.9s forwards;
+}
+
+.hero h1 span{
+    color:var(--pink);
+}
+
+.hero-description{
+    width:min(530px,100%);
+    margin-top:30px;
+    color:#777780;
+    font-size:15px;
+    line-height:1.9;
+    opacity:0;
+    animation:fadeUp 1s 3.3s forwards;
+}
+
+@keyframes fadeUp{
+    from{
+        opacity:0;
+        transform:translateY(25px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+.scroll{
+    margin-top:55px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    color:#3f3f47;
+    font-family:"JetBrains Mono",monospace;
+    font-size:8px;
+    letter-spacing:2px;
+    opacity:0;
+    animation:fadeUp 1s 3.8s forwards;
+}
+
+.scroll-line{
+    width:1px;
+    height:40px;
+    background:linear-gradient(to bottom,#ffffff30,transparent);
+    animation:scrollMove 2s infinite;
+}
+
+@keyframes scrollMove{
+    0%,100%{
+        transform:scaleY(.5);
+        transform-origin:top;
+    }
+    50%{
+        transform:scaleY(1);
+        transform-origin:top;
+    }
+}
+
+.panel{
+    border:1px solid var(--line);
+    border-radius:28px;
+    background:linear-gradient(145deg,#ffffff09,#ffffff03);
+    backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    overflow:hidden;
+    box-shadow:
+        0 40px 120px #00000055,
+        inset 0 1px #ffffff08;
+}
+
+.panel-header{
+    min-height:60px;
+    padding:15px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    border-bottom:1px solid var(--line);
+    font-family:"JetBrains Mono",monospace;
+    font-size:9px;
+    color:#5d5d67;
+    letter-spacing:1.5px;
+}
+
+.panel-title{
+    color:#9999a2;
+}
+
+.scanning{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    white-space:nowrap;
+}
+
+.scan-dot{
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:var(--pink);
+    box-shadow:0 0 10px var(--pink);
+    animation:scanPulse 1s infinite;
+}
+
+@keyframes scanPulse{
+    50%{
+        opacity:.2;
+    }
+}
+
+.rows{
+    padding:10px 25px 18px;
+}
+
+.row{
+    min-height:70px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    border-bottom:1px solid #ffffff08;
+    font-family:"JetBrains Mono",monospace;
+    font-size:11px;
+    color:#777780;
+    opacity:0;
+    transform:translateY(10px);
+    transition:opacity .7s ease,transform .7s ease;
+}
+
+.row:last-child{
+    border-bottom:none;
+}
+
+.row.show{
+    opacity:1;
+    transform:translateY(0);
+}
+
+.result{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    white-space:nowrap;
+    font-size:9px;
+}
+
+.result-icon{
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    font-size:9px;
+}
+
+.false{
+    color:var(--red);
+}
+
+.false .result-icon{
+    border:1px solid #ff8c8c30;
+    background:#ff8c8c08;
+}
+
+.true{
+    color:var(--green);
+}
+
+.true .result-icon{
+    border:1px solid #9dffba30;
+    background:#9dffba08;
+}
+
+.message{
+    padding:clamp(120px,18vw,180px) 0 100px;
+    text-align:center;
+}
+
+.message-label{
+    color:#4e4e57;
+    font-family:"JetBrains Mono",monospace;
+    font-size:9px;
+    letter-spacing:4px;
+    line-height:1.6;
+    margin-bottom:35px;
+}
+
+.message h2{
+    font-size:clamp(34px,6vw,62px);
+    line-height:1.05;
+    letter-spacing:-3px;
+    font-weight:400;
+}
+
+.message h2 span{
+    color:var(--pink);
+}
+
+.type-container{
+    width:min(570px,100%);
+    min-height:150px;
+    margin:40px auto 0;
+    color:#85858f;
+    font-size:15px;
+    line-height:2;
+    text-align:center;
+}
+
+.cursor{
+    display:inline-block;
+    width:1px;
+    height:15px;
+    vertical-align:-2px;
+    background:var(--pink);
+    margin-left:4px;
+    animation:cursorBlink 1s infinite;
+}
+
+@keyframes cursorBlink{
+    50%{
+        opacity:0;
+    }
+}
+
+.terminal{
+    width:min(620px,100%);
+    margin:65px auto 0;
+    padding:24px;
+    border:1px solid var(--line);
+    border-radius:20px;
+    background:#00000045;
+    text-align:left;
+    font-family:"JetBrains Mono",monospace;
+    font-size:10px;
+    line-height:2.1;
+    color:#55555e;
+    box-shadow:inset 0 1px #ffffff05;
+}
+
+.term-line{
+    opacity:0;
+    transform:translateX(-8px);
+}
+
+.term-line.show{
+    animation:termIn .5s forwards;
+}
+
+@keyframes termIn{
+    to{
+        opacity:1;
+        transform:translateX(0);
+    }
+}
+
+.green{
+    color:var(--green);
+}
+
+.pink{
+    color:var(--pink);
+}
+
+.final{
+    min-height:70vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:80px 0;
+}
+
+.final-orb{
+    width:80px;
+    height:80px;
+    flex:0 0 80px;
+    border-radius:50%;
+    border:1px solid #ffffff18;
+    display:grid;
+    place-items:center;
+    background:#ffffff06;
+    box-shadow:0 0 70px #ff9db710;
+    animation:orbPulse 4s ease-in-out infinite;
+}
+
+@keyframes orbPulse{
+    0%,100%{
+        transform:scale(1);
+    }
+    50%{
+        transform:scale(1.08);
+        box-shadow:0 0 100px #ff9db718;
+    }
+}
+
+.orb-heart{
+    color:var(--pink);
+    font-size:27px;
+    animation:heartBeat 2.5s infinite;
+}
+
+@keyframes heartBeat{
+    0%,100%{
+        transform:scale(1);
+    }
+    15%{
+        transform:scale(1.15);
+    }
+    30%{
+        transform:scale(1);
+    }
+    45%{
+        transform:scale(1.08);
+    }
+}
+
+.final h3{
+    margin-top:40px;
+    font-size:clamp(27px,5vw,48px);
+    line-height:1.1;
+    letter-spacing:-2px;
+    font-weight:400;
+}
+
+.final h3 span{
+    color:var(--pink);
+}
+
+.final-sub{
+    width:min(450px,100%);
+    margin-top:25px;
+    color:#676771;
+    line-height:1.8;
+    font-size:14px;
+}
+
+.signature{
+    margin-top:45px;
+    color:#45454d;
+    font-family:"JetBrains Mono",monospace;
+    font-size:9px;
+    letter-spacing:3px;
+}
+
+.footer{
+    margin-top:40px;
+    padding-top:22px;
+    border-top:1px solid var(--line);
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+    color:#38383f;
+    font-family:"JetBrains Mono",monospace;
+    font-size:8px;
+    letter-spacing:1px;
+}
+
+@media(max-width:700px){
+
+    main{
+        width:calc(100% - 28px);
+        padding-bottom:max(60px,env(safe-area-inset-bottom));
+    }
+
+    .nav{
+        min-height:50px;
+        font-size:7px;
+        letter-spacing:1.4px;
+    }
+
+    .connection{
+        font-size:7px;
+        letter-spacing:1px;
+    }
+
+    .hero{
+        min-height:calc(100svh - 50px);
+        min-height:calc(100dvh - 50px);
+        padding:55px 0;
+    }
+
+    .hero-label{
+        font-size:8px;
+        letter-spacing:2px;
+        margin-bottom:24px;
+    }
+
+    .hero h1{
+        font-size:clamp(40px,12vw,62px);
+        letter-spacing:-3px;
+    }
+
+    .hero-description{
+        font-size:14px;
+        line-height:1.8;
+        margin-top:25px;
+    }
+
+    .scroll{
+        margin-top:45px;
+    }
+
+    .panel{
+        border-radius:22px;
+    }
+
+    .panel-header{
+        min-height:55px;
+        padding:14px 17px;
+        font-size:7px;
+        letter-spacing:1px;
+    }
+
+    .rows{
+        padding:7px 17px 12px;
+    }
+
+    .row{
+        min-height:64px;
+        font-size:9px;
+        gap:12px;
+    }
+
+    .result{
+        font-size:7px;
+        gap:6px;
+    }
+
+    .result-icon{
+        width:18px;
+        height:18px;
+        font-size:8px;
+    }
+
+    .message{
+        padding:110px 0 80px;
+    }
+
+    .message-label{
+        font-size:8px;
+        letter-spacing:2.5px;
+        margin-bottom:28px;
+    }
+
+    .message h2{
+        font-size:clamp(32px,9vw,48px);
+        letter-spacing:-2px;
+    }
+
+    .type-container{
+        font-size:14px;
+        line-height:1.9;
+        min-height:190px;
+        margin-top:32px;
+    }
+
+    .terminal{
+        margin-top:45px;
+        padding:18px 16px;
+        border-radius:17px;
+        font-size:8px;
+        line-height:2.2;
+        overflow:hidden;
+    }
+
+    .final{
+        min-height:75svh;
+        min-height:75dvh;
+        padding:60px 0;
+    }
+
+    .final-orb{
+        width:70px;
+        height:70px;
+        flex-basis:70px;
+    }
+
+    .final h3{
+        margin-top:32px;
+        font-size:clamp(27px,8vw,40px);
+        letter-spacing:-1.5px;
+    }
+
+    .final-sub{
+        font-size:13px;
+        line-height:1.8;
+    }
+
+    .signature{
+        font-size:8px;
+        letter-spacing:2px;
+    }
+
+    .footer{
+        flex-direction:column;
+        align-items:center;
+        text-align:center;
+        gap:9px;
+        padding-bottom:15px;
+    }
+}
+
+@media(max-width:380px){
+
+    main{
+        width:calc(100% - 22px);
+    }
+
+    .hero h1{
+        font-size:38px;
+    }
+
+    .hero-description{
+        font-size:13px;
+    }
+
+    .row{
+        font-size:8px;
+    }
+
+    .result{
+        font-size:6.5px;
+    }
+
+    .message h2{
+        font-size:30px;
+    }
+
+    .type-container{
+        font-size:13px;
+    }
+
+    .terminal{
+        font-size:7px;
+    }
+}
+
+@media(prefers-reduced-motion:reduce){
+
+    *,
+    *::before,
+    *::after{
+        animation-duration:.01ms !important;
+        animation-iteration-count:1 !important;
+        scroll-behavior:auto !important;
+        transition-duration:.01ms !important;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="ambient"></div>
+<div class="grid"></div>
+<div class="noise"></div>
+
+<div class="boot" id="boot">
+
+    <div class="boot-content">
+
+        <div class="boot-top">
+            <span>PRIVATE TRANSMISSION</span>
+            <span>01</span>
+        </div>
+
+        <div class="boot-line">
+            <div class="boot-progress"></div>
+        </div>
+
+        <div class="boot-text" id="bootText">
+            establishing connection...
+        </div>
+
+    </div>
+
+</div>
+
+<main>
+
+    <nav class="nav">
+
+        <span>FOR_YOU // PRIVATE</span>
+
+        <div class="connection">
+            <div class="connection-dot"></div>
+            CONNECTION ACTIVE
+        </div>
+
+    </nav>
+
+    <section class="hero">
+
+        <div class="hero-label">
+            THIS ISN'T A MESSAGE.<br>
+            IT'S A LITTLE PLACE TO BREATHE.
+        </div>
+
+        <h1>
+            Hey maa,<br>
+            come here for a second.<br>
+            <span>forget everything else.</span>
+        </h1>
+
+        <p class="hero-description">
+            I know today wasn't kind to you.
+            So I made something small.
+            Nothing you have to answer.
+            Nothing you have to explain.
+            Just something I wanted you to have.
+        </p>
+
+        <div class="scroll">
+            SCROLL SLOWLY
+            <div class="scroll-line"></div>
+        </div>
+
+    </section>
+
+    <section>
+
+        <div class="panel">
+
+            <div class="panel-header">
+
+                <span class="panel-title">
+                    / HEART_DIAGNOSTIC
+                </span>
+
+                <div class="scanning">
+                    <div class="scan-dot"></div>
+                    RUNNING
+                </div>
+
+            </div>
+
+            <div class="rows">
+
+                <div class="row">
+                    <span>"I am a failure"</span>
+                    <div class="result false">
+                        <div class="result-icon">×</div>
+                        FALSE
+                    </div>
+                </div>
+
+                <div class="row">
+                    <span>"I am a bad daughter"</span>
+                    <div class="result false">
+                        <div class="result-icon">×</div>
+                        FALSE
+                    </div>
+                </div>
+
+                <div class="row">
+                    <span>"One result defines me"</span>
+                    <div class="result false">
+                        <div class="result-icon">×</div>
+                        FALSE
+                    </div>
+                </div>
+
+                <div class="row">
+                    <span>"I made a mistake"</span>
+                    <div class="result true">
+                        <div class="result-icon">✓</div>
+                        TRUE
+                    </div>
+                </div>
+
+                <div class="row">
+                    <span>"I can try again"</span>
+                    <div class="result true">
+                        <div class="result-icon">✓</div>
+                        TRUE
+                    </div>
+                </div>
+
+                <div class="row">
+                    <span>"I am worth believing in"</span>
+                    <div class="result true">
+                        <div class="result-icon">✓</div>
+                        TRUE
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="message">
+
+        <div class="message-label">
+            ONE THING I WANT YOU TO REMEMBER
+        </div>
+
+        <h2>
+            A bad day<br>
+            doesn't make you<br>
+            a <span>bad person.</span>
+        </h2>
+
+        <div class="type-container">
+            <span id="typed"></span>
+            <span class="cursor"></span>
+        </div>
+
+        <div class="terminal">
+
+            <div class="term-line" id="t1">
+                > checking your worth...
+                <span class="green">FOUND ✓</span>
+            </div>
+
+            <div class="term-line" id="t2">
+                > checking your future...
+                <span class="green">STILL THERE ✓</span>
+            </div>
+
+            <div class="term-line" id="t3">
+                > checking your dreams...
+                <span class="green">NOT DELETED ✓</span>
+            </div>
+
+            <div class="term-line" id="t4">
+                > checking "failure"...
+                <span class="pink">NOT FOUND</span>
+            </div>
+
+            <div class="term-line" id="t5">
+                > checking "bad daughter"...
+                <span class="pink">NOT FOUND</span>
+            </div>
+
+            <div class="term-line" id="t6">
+                > checking someone who believes in you...
+                <span class="green">ME ✓</span>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="final">
+
+        <div class="final-orb">
+            <div class="orb-heart">♡</div>
+        </div>
+
+        <h3>
+            You don't have to<br>
+            be okay right now.<br>
+            <span>Just be you.</span>
+        </h3>
+
+        <p class="final-sub">
+            Take your time.
+            Breathe.
+            Rest.
+            You don't need to reply to this.
+            I just wanted you to know that someone
+            still believes in you.
+        </p>
+
+        <div class="signature">
+            I'M STILL HERE.
+        </div>
+
+    </section>
+
+    <footer class="footer">
+        <span>TRANSMISSION COMPLETE</span>
+        <span>NO RESPONSE REQUIRED</span>
+    </footer>
+
+</main>
+
+<script>
+
+for(let i=0;i<55;i++){
+
+    const particle=document.createElement("div");
+
+    particle.className="particle";
+
+    particle.style.left=Math.random()*100+"vw";
+
+    particle.style.animationDuration=
+        (8+Math.random()*18)+"s";
+
+    particle.style.animationDelay=
+        Math.random()*12+"s";
+
+    document.body.appendChild(particle);
+
+}
+
+const boot=document.getElementById("boot");
+const bootText=document.getElementById("bootText");
+
+const bootMessages=[
+    "establishing connection...",
+    "checking private channel...",
+    "connection secured.",
+    "loading something important...",
+    "ready."
+];
+
+let bootIndex=0;
+
+const bootInterval=setInterval(()=>{
+
+    bootText.textContent=bootMessages[bootIndex];
+
+    bootIndex++;
+
+    if(bootIndex>=bootMessages.length){
+
+        clearInterval(bootInterval);
+
+        setTimeout(()=>{
+            boot.classList.add("hide");
+        },500);
+
+    }
+
+},520);
+
+const rows=document.querySelectorAll(".row");
+
+const rowObserver=new IntersectionObserver(
+    entries=>{
+
+        if(entries[0].isIntersecting){
+
+            rows.forEach((row,index)=>{
+
+                setTimeout(()=>{
+                    row.classList.add("show");
+                },index*220);
+
+            });
+
+            rowObserver.disconnect();
+
+        }
+
+    },
+    {threshold:.2}
+);
+
+rowObserver.observe(document.querySelector(".panel"));
+
+const message=
+`Maa, I know today hurt.
+
+And I know words can sometimes become much louder in our heads than they deserve to be.
+
+But please don't let one result, one mistake, or one person's words become the definition of who you are.
+
+You are allowed to have a bad day.
+You are allowed to make mistakes.
+You are allowed to start again.
+
+You don't have to explain anything to me.
+
+Take your time.
+
+I'll still be here.`;
+
+const typed=document.getElementById("typed");
+
+let typedStarted=false;
+
+const typeObserver=new IntersectionObserver(
+    entries=>{
+
+        if(entries[0].isIntersecting && !typedStarted){
+
+            typedStarted=true;
+
+            let i=0;
+
+            function type(){
+
+                if(i<message.length){
+
+                    typed.textContent+=message.charAt(i);
+
+                    i++;
+
+                    let delay=24;
+
+                    if(message.charAt(i-1)==="."){
+                        delay=170;
+                    }
+
+                    if(message.charAt(i-1)==="\n"){
+                        delay=280;
+                    }
+
+                    setTimeout(type,delay);
+
+                }
+
+            }
+
+            type();
+
+            typeObserver.disconnect();
+
+        }
+
+    },
+    {threshold:.25}
+);
+
+typeObserver.observe(document.querySelector(".type-container"));
+
+const terminal=document.querySelector(".terminal");
+const terminalLines=document.querySelectorAll(".term-line");
+
+let terminalStarted=false;
+
+const terminalObserver=new IntersectionObserver(
+    entries=>{
+
+        if(entries[0].isIntersecting && !terminalStarted){
+
+            terminalStarted=true;
+
+            terminalLines.forEach((line,index)=>{
+
+                setTimeout(()=>{
+
+                    line.classList.add("show");
+
+                },index*600);
+
+            });
+
+            terminalObserver.disconnect();
+
+        }
+
+    },
+    {threshold:.3}
+);
+
+terminalObserver.observe(terminal);
+
+const ambient=document.querySelector(".ambient");
+
+if(window.matchMedia("(pointer:fine)").matches){
+
+    document.addEventListener("mousemove",e=>{
+
+        const x=(e.clientX/window.innerWidth-.5)*12;
+        const y=(e.clientY/window.innerHeight-.5)*12;
+
+        ambient.style.transform=
+            `translate(${x}px,${y}px)`;
+
+    });
+
+}
+
+</script>
+
+</body>
+</html>

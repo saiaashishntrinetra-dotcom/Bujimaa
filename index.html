@@ -1,1025 +1,912 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#050507">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>private.transmission</title>
+<meta name="theme-color" content="#030305">
+<meta name="description" content="A little reminder that you are more than one bad day.">
+
+<title>For You</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    -webkit-tap-highlight-color:transparent;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-:root{
-    --bg:#050507;
-    --text:#f4f4f7;
-    --muted:#777780;
-    --dim:#45454d;
-    --glass:#ffffff08;
-    --line:#ffffff12;
-    --pink:#ff9db7;
-    --green:#9dffba;
-    --red:#ff8c8c;
+html {
+    scroll-behavior: smooth;
 }
 
-html{
-    scroll-behavior:smooth;
-    background:var(--bg);
+body {
+    min-height: 100vh;
+    background: #030305;
+    color: #f5f1f5;
+    font-family: "DM Sans", sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
 }
 
-body{
-    min-height:100vh;
-    min-height:100dvh;
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
     background:
-        radial-gradient(circle at 50% 18%,#ff9db709,transparent 32%),
-        radial-gradient(circle at 10% 85%,#ffffff04,transparent 25%),
-        var(--bg);
-    color:var(--text);
-    font-family:"DM Sans",sans-serif;
-    overflow-x:hidden;
-    -webkit-font-smoothing:antialiased;
+        radial-gradient(circle at 50% 20%, rgba(255, 91, 155, 0.09), transparent 35%),
+        radial-gradient(circle at 10% 80%, rgba(128, 80, 255, 0.06), transparent 30%);
+    z-index: -5;
 }
 
-button,
-a{
-    font:inherit;
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E");
+    z-index: 50;
 }
 
-.ambient{
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-    overflow:hidden;
-    z-index:-3;
-    transition:transform 1s ease;
+.ambient {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: -3;
 }
 
-.ambient::before{
-    content:"";
-    position:absolute;
-    width:min(700px,100vw);
-    height:min(700px,100vw);
-    left:50%;
-    top:15%;
-    transform:translate(-50%,-50%);
-    border-radius:50%;
-    background:#ff9db708;
-    filter:blur(130px);
-    animation:ambientPulse 8s ease-in-out infinite;
+.glow {
+    position: absolute;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    filter: blur(110px);
+    opacity: 0.13;
+    transition: transform 3s cubic-bezier(.16,1,.3,1);
 }
 
-@keyframes ambientPulse{
-    0%,100%{
-        opacity:.4;
-        transform:translate(-50%,-50%) scale(1);
-    }
-    50%{
-        opacity:.8;
-        transform:translate(-50%,-50%) scale(1.15);
-    }
+.glow.one {
+    top: -170px;
+    left: -120px;
+    background: #ff4f9a;
 }
 
-.grid{
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-    opacity:.07;
+.glow.two {
+    right: -160px;
+    bottom: -180px;
+    background: #8a5cff;
+}
+
+.grid {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.045;
     background-image:
-        linear-gradient(#fff 1px,transparent 1px),
-        linear-gradient(90deg,#fff 1px,transparent 1px);
-    background-size:80px 80px;
-    mask-image:linear-gradient(to bottom,#000,transparent 85%);
-    -webkit-mask-image:linear-gradient(to bottom,#000,transparent 85%);
+        linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px);
+    background-size: 55px 55px;
+    mask-image: linear-gradient(to bottom, black, transparent 85%);
+    z-index: -2;
 }
 
-.noise{
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-    z-index:50;
-    opacity:.02;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+.particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: -1;
 }
 
-.particle{
-    position:fixed;
-    width:2px;
-    height:2px;
-    border-radius:50%;
-    background:white;
-    opacity:0;
-    pointer-events:none;
-    animation:particleFloat linear infinite;
+.particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.55);
+    animation: floatParticle linear infinite;
 }
 
-@keyframes particleFloat{
-    0%{
-        transform:translateY(105vh) scale(.3);
-        opacity:0;
+@keyframes floatParticle {
+    from {
+        transform: translate3d(0, 110vh, 0);
+        opacity: 0;
     }
-    15%{
-        opacity:.5;
+
+    15% {
+        opacity: .6;
     }
-    80%{
-        opacity:.15;
+
+    85% {
+        opacity: .6;
     }
-    100%{
-        transform:translateY(-10vh) scale(1);
-        opacity:0;
-    }
-}
 
-.boot{
-    position:fixed;
-    inset:0;
-    z-index:100;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:25px;
-    background:#050507;
-    transition:opacity 1s ease,visibility 1s ease;
-}
-
-.boot.hide{
-    opacity:0;
-    visibility:hidden;
-}
-
-.boot-content{
-    width:min(420px,100%);
-}
-
-.boot-top{
-    display:flex;
-    justify-content:space-between;
-    gap:20px;
-    color:#45454d;
-    font-family:"JetBrains Mono",monospace;
-    font-size:9px;
-    letter-spacing:2px;
-    margin-bottom:25px;
-}
-
-.boot-line{
-    height:1px;
-    background:#ffffff0d;
-    overflow:hidden;
-}
-
-.boot-progress{
-    width:0;
-    height:100%;
-    background:var(--pink);
-    box-shadow:0 0 15px var(--pink);
-    animation:bootProgress 2.5s ease forwards;
-}
-
-@keyframes bootProgress{
-    to{
-        width:100%;
+    to {
+        transform: translate3d(30px, -20vh, 0);
+        opacity: 0;
     }
 }
 
-.boot-text{
-    margin-top:20px;
-    font-family:"JetBrains Mono",monospace;
-    font-size:10px;
-    color:#777780;
+.boot {
+    position: fixed;
+    inset: 0;
+    background: #030305;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition:
+        opacity 2s cubic-bezier(.16,1,.3,1),
+        visibility 2s;
 }
 
-main{
-    position:relative;
-    width:min(880px,calc(100% - 40px));
-    margin:auto;
-    padding:
-        max(25px,env(safe-area-inset-top))
-        0
-        max(80px,env(safe-area-inset-bottom));
+.boot.hidden {
+    opacity: 0;
+    visibility: hidden;
 }
 
-.nav{
-    min-height:55px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:20px;
-    border-bottom:1px solid var(--line);
-    color:#50505a;
-    font-family:"JetBrains Mono",monospace;
-    font-size:9px;
-    letter-spacing:2px;
+.boot-box {
+    width: min(460px, calc(100% - 42px));
 }
 
-.connection{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    white-space:nowrap;
+.boot-label {
+    color: rgba(255,255,255,.42);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: .22em;
+    margin-bottom: 18px;
+    text-transform: uppercase;
 }
 
-.connection-dot{
-    width:5px;
-    height:5px;
-    flex:0 0 5px;
-    border-radius:50%;
-    background:var(--green);
-    box-shadow:0 0 8px var(--green);
-    animation:connectionBlink 2s infinite;
+.boot-title {
+    font-size: clamp(28px, 6vw, 42px);
+    font-weight: 600;
+    letter-spacing: -.04em;
+    margin-bottom: 26px;
 }
 
-@keyframes connectionBlink{
-    0%,100%{
-        opacity:1;
+.boot-line {
+    height: 1px;
+    background: rgba(255,255,255,.08);
+    overflow: hidden;
+}
+
+.boot-progress {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #ff4f9a, #ff9bc5);
+    transition: width 3.2s cubic-bezier(.16,1,.3,1);
+}
+
+.boot-status {
+    margin-top: 15px;
+    color: rgba(255,255,255,.35);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    min-height: 15px;
+}
+
+.page {
+    width: min(1100px, calc(100% - 40px));
+    margin: auto;
+    padding: 26px 0 80px;
+}
+
+.nav {
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    opacity: 0;
+    transform: translateY(-15px);
+    transition:
+        opacity 2s cubic-bezier(.16,1,.3,1),
+        transform 2s cubic-bezier(.16,1,.3,1);
+}
+
+.loaded .nav {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.nav-left {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: .14em;
+    color: rgba(255,255,255,.48);
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    color: rgba(255,255,255,.32);
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #8effba;
+    box-shadow: 0 0 14px rgba(142,255,186,.65);
+    animation: pulse 2.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: .4;
+        transform: scale(.8);
     }
-    50%{
-        opacity:.3;
-    }
-}
 
-.hero{
-    min-height:calc(100svh - 55px);
-    min-height:calc(100dvh - 55px);
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    text-align:center;
-    padding:70px 0;
-}
-
-.hero-label{
-    max-width:90%;
-    font-family:"JetBrains Mono",monospace;
-    font-size:9px;
-    line-height:1.6;
-    letter-spacing:3px;
-    color:#5b5b65;
-    margin-bottom:30px;
-    opacity:0;
-    animation:fadeUp 1s 2.7s forwards;
-}
-
-.hero h1{
-    max-width:850px;
-    font-size:clamp(42px,8vw,86px);
-    line-height:.95;
-    letter-spacing:clamp(-5px,-.5vw,-2px);
-    font-weight:400;
-    opacity:0;
-    animation:fadeUp 1.2s 2.9s forwards;
-}
-
-.hero h1 span{
-    color:var(--pink);
-}
-
-.hero-description{
-    width:min(530px,100%);
-    margin-top:30px;
-    color:#777780;
-    font-size:15px;
-    line-height:1.9;
-    opacity:0;
-    animation:fadeUp 1s 3.3s forwards;
-}
-
-@keyframes fadeUp{
-    from{
-        opacity:0;
-        transform:translateY(25px);
-    }
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-}
-
-.scroll{
-    margin-top:55px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:10px;
-    color:#3f3f47;
-    font-family:"JetBrains Mono",monospace;
-    font-size:8px;
-    letter-spacing:2px;
-    opacity:0;
-    animation:fadeUp 1s 3.8s forwards;
-}
-
-.scroll-line{
-    width:1px;
-    height:40px;
-    background:linear-gradient(to bottom,#ffffff30,transparent);
-    animation:scrollMove 2s infinite;
-}
-
-@keyframes scrollMove{
-    0%,100%{
-        transform:scaleY(.5);
-        transform-origin:top;
-    }
-    50%{
-        transform:scaleY(1);
-        transform-origin:top;
+    50% {
+        opacity: 1;
+        transform: scale(1);
     }
 }
 
-.panel{
-    border:1px solid var(--line);
-    border-radius:28px;
-    background:linear-gradient(145deg,#ffffff09,#ffffff03);
-    backdrop-filter:blur(30px);
-    -webkit-backdrop-filter:blur(30px);
-    overflow:hidden;
+.hero {
+    min-height: 74vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 100px 0 80px;
+}
+
+.eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,.32);
+    letter-spacing: .2em;
+    margin-bottom: 28px;
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+        opacity 2s cubic-bezier(.16,1,.3,1) .5s,
+        transform 2s cubic-bezier(.16,1,.3,1) .5s;
+}
+
+.loaded .eyebrow {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.hero h1 {
+    max-width: 850px;
+    font-size: clamp(42px, 7vw, 82px);
+    line-height: .98;
+    letter-spacing: -.065em;
+    font-weight: 600;
+    opacity: 0;
+    transform: translateY(25px);
+    transition:
+        opacity 2.2s cubic-bezier(.16,1,.3,1) .75s,
+        transform 2.2s cubic-bezier(.16,1,.3,1) .75s;
+}
+
+.loaded .hero h1 {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.hero h1 span {
+    color: rgba(255,255,255,.32);
+}
+
+.hero-sub {
+    margin-top: 32px;
+    max-width: 550px;
+    color: rgba(255,255,255,.45);
+    font-size: 15px;
+    line-height: 1.8;
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+        opacity 2s cubic-bezier(.16,1,.3,1) 1.05s,
+        transform 2s cubic-bezier(.16,1,.3,1) 1.05s;
+}
+
+.loaded .hero-sub {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.scroll-indicator {
+    margin-top: 70px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255,255,255,.25);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    letter-spacing: .15em;
+    opacity: 0;
+    transition: opacity 2s ease 1.4s;
+}
+
+.loaded .scroll-indicator {
+    opacity: 1;
+}
+
+.scroll-line {
+    width: 45px;
+    height: 1px;
+    background: rgba(255,255,255,.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.scroll-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #ff6da8;
+    transform: translateX(-100%);
+    animation: scanLine 3s ease-in-out infinite;
+}
+
+@keyframes scanLine {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    50%, 100% {
+        transform: translateX(100%);
+    }
+}
+
+.section {
+    padding: 70px 0;
+}
+
+.diagnostic {
+    position: relative;
+    border: 1px solid rgba(255,255,255,.09);
+    background: rgba(255,255,255,.025);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 28px;
+    padding: clamp(24px, 5vw, 55px);
+    overflow: hidden;
     box-shadow:
-        0 40px 120px #00000055,
-        inset 0 1px #ffffff08;
+        0 35px 100px rgba(0,0,0,.35),
+        inset 0 1px 0 rgba(255,255,255,.04);
+    opacity: 0;
+    transform: translateY(35px) scale(.985);
+    transition:
+        opacity 2.2s cubic-bezier(.16,1,.3,1),
+        transform 2.2s cubic-bezier(.16,1,.3,1),
+        border-color 1.5s ease,
+        box-shadow 1.5s ease;
 }
 
-.panel-header{
-    min-height:60px;
-    padding:15px 24px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:20px;
-    border-bottom:1px solid var(--line);
-    font-family:"JetBrains Mono",monospace;
-    font-size:9px;
-    color:#5d5d67;
-    letter-spacing:1.5px;
+.diagnostic.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
 }
 
-.panel-title{
-    color:#9999a2;
+.diagnostic::before {
+    content: "";
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    top: -160px;
+    right: -100px;
+    background: rgba(255,76,148,.08);
+    filter: blur(70px);
+    pointer-events: none;
 }
 
-.scanning{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    white-space:nowrap;
+.diagnostic:hover {
+    border-color: rgba(255,255,255,.14);
+    box-shadow:
+        0 45px 120px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,255,255,.05);
 }
 
-.scan-dot{
-    width:5px;
-    height:5px;
-    border-radius:50%;
-    background:var(--pink);
-    box-shadow:0 0 10px var(--pink);
-    animation:scanPulse 1s infinite;
+.panel-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 38px;
+    gap: 20px;
 }
 
-@keyframes scanPulse{
-    50%{
-        opacity:.2;
-    }
+.panel-title {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: .15em;
+    color: rgba(255,255,255,.4);
 }
 
-.rows{
-    padding:10px 25px 18px;
+.panel-state {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    color: #8effba;
+    letter-spacing: .12em;
 }
 
-.row{
-    min-height:70px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:20px;
-    border-bottom:1px solid #ffffff08;
-    font-family:"JetBrains Mono",monospace;
-    font-size:11px;
-    color:#777780;
-    opacity:0;
-    transform:translateY(10px);
-    transition:opacity .7s ease,transform .7s ease;
+.scan {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    margin-bottom: 42px;
 }
 
-.row:last-child{
-    border-bottom:none;
+.scan-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,.34);
+    opacity: 0;
+    transform: translateX(-20px);
+    transition:
+        opacity 1.5s cubic-bezier(.16,1,.3,1),
+        transform 1.5s cubic-bezier(.16,1,.3,1);
 }
 
-.row.show{
-    opacity:1;
-    transform:translateY(0);
+.scan-row.show {
+    opacity: 1;
+    transform: translateX(0);
 }
 
-.result{
-    display:flex;
-    align-items:center;
-    gap:9px;
-    white-space:nowrap;
-    font-size:9px;
+.scan-row strong {
+    color: rgba(255,255,255,.7);
+    font-weight: 400;
 }
 
-.result-icon{
-    width:20px;
-    height:20px;
-    border-radius:50%;
-    display:grid;
-    place-items:center;
-    font-size:9px;
+.failed {
+    color: #ff8eb8 !important;
 }
 
-.false{
-    color:var(--red);
+.success {
+    color: #8effba !important;
 }
 
-.false .result-icon{
-    border:1px solid #ff8c8c30;
-    background:#ff8c8c08;
+.message {
+    border-left: 1px solid rgba(255,105,166,.5);
+    padding-left: 24px;
+    min-height: 190px;
 }
 
-.true{
-    color:var(--green);
+.message-label {
+    font-family: "JetBrains Mono", monospace;
+    color: rgba(255,255,255,.28);
+    font-size: 9px;
+    letter-spacing: .16em;
+    margin-bottom: 20px;
 }
 
-.true .result-icon{
-    border:1px solid #9dffba30;
-    background:#9dffba08;
+.typewriter {
+    max-width: 720px;
+    font-size: clamp(20px, 3vw, 31px);
+    line-height: 1.55;
+    letter-spacing: -.025em;
+    color: rgba(255,255,255,.82);
 }
 
-.message{
-    padding:clamp(120px,18vw,180px) 0 100px;
-    text-align:center;
+.cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: #ff6da8;
+    margin-left: 4px;
+    vertical-align: -.1em;
+    animation: blink 1s step-end infinite;
 }
 
-.message-label{
-    color:#4e4e57;
-    font-family:"JetBrains Mono",monospace;
-    font-size:9px;
-    letter-spacing:4px;
-    line-height:1.6;
-    margin-bottom:35px;
-}
-
-.message h2{
-    font-size:clamp(34px,6vw,62px);
-    line-height:1.05;
-    letter-spacing:-3px;
-    font-weight:400;
-}
-
-.message h2 span{
-    color:var(--pink);
-}
-
-.type-container{
-    width:min(570px,100%);
-    min-height:150px;
-    margin:40px auto 0;
-    color:#85858f;
-    font-size:15px;
-    line-height:2;
-    text-align:center;
-}
-
-.cursor{
-    display:inline-block;
-    width:1px;
-    height:15px;
-    vertical-align:-2px;
-    background:var(--pink);
-    margin-left:4px;
-    animation:cursorBlink 1s infinite;
-}
-
-@keyframes cursorBlink{
-    50%{
-        opacity:0;
+@keyframes blink {
+    50% {
+        opacity: 0;
     }
 }
 
-.terminal{
-    width:min(620px,100%);
-    margin:65px auto 0;
-    padding:24px;
-    border:1px solid var(--line);
-    border-radius:20px;
-    background:#00000045;
-    text-align:left;
-    font-family:"JetBrains Mono",monospace;
-    font-size:10px;
-    line-height:2.1;
-    color:#55555e;
-    box-shadow:inset 0 1px #ffffff05;
+.terminal {
+    margin-top: 50px;
+    border-radius: 18px;
+    background: rgba(0,0,0,.25);
+    border: 1px solid rgba(255,255,255,.06);
+    padding: 22px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    line-height: 2;
+    color: rgba(255,255,255,.35);
+    min-height: 180px;
 }
 
-.term-line{
-    opacity:0;
-    transform:translateX(-8px);
+.terminal-line {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+        opacity 1.2s cubic-bezier(.16,1,.3,1),
+        transform 1.2s cubic-bezier(.16,1,.3,1);
 }
 
-.term-line.show{
-    animation:termIn .5s forwards;
+.terminal-line.show {
+    opacity: 1;
+    transform: translateY(0);
 }
 
-@keyframes termIn{
-    to{
-        opacity:1;
-        transform:translateX(0);
-    }
+.terminal-line span {
+    color: rgba(255,255,255,.7);
 }
 
-.green{
-    color:var(--green);
+.final {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
 }
 
-.pink{
-    color:var(--pink);
+.final-inner {
+    opacity: 0;
+    transform: translateY(35px);
+    transition:
+        opacity 2.5s cubic-bezier(.16,1,.3,1),
+        transform 2.5s cubic-bezier(.16,1,.3,1);
 }
 
-.final{
-    min-height:70vh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    padding:80px 0;
+.final-inner.visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
-.final-orb{
-    width:80px;
-    height:80px;
-    flex:0 0 80px;
-    border-radius:50%;
-    border:1px solid #ffffff18;
-    display:grid;
-    place-items:center;
-    background:#ffffff06;
-    box-shadow:0 0 70px #ff9db710;
-    animation:orbPulse 4s ease-in-out infinite;
+.orb {
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 38px;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,.3), rgba(255,91,155,.18) 25%, rgba(255,91,155,.03) 65%, transparent 70%);
+    box-shadow:
+        0 0 70px rgba(255,77,148,.16),
+        inset 0 0 30px rgba(255,255,255,.04);
+    animation: orbFloat 5s ease-in-out infinite;
 }
 
-@keyframes orbPulse{
-    0%,100%{
-        transform:scale(1);
-    }
-    50%{
-        transform:scale(1.08);
-        box-shadow:0 0 100px #ff9db718;
-    }
+.orb::before {
+    content: "♥";
+    font-size: 27px;
+    color: rgba(255,120,174,.85);
+    filter: drop-shadow(0 0 15px rgba(255,100,170,.5));
 }
 
-.orb-heart{
-    color:var(--pink);
-    font-size:27px;
-    animation:heartBeat 2.5s infinite;
+.orb::after {
+    content: "";
+    position: absolute;
+    inset: -18px;
+    border: 1px solid rgba(255,105,166,.12);
+    border-radius: 50%;
+    animation: ring 5s ease-in-out infinite;
 }
 
-@keyframes heartBeat{
-    0%,100%{
-        transform:scale(1);
-    }
-    15%{
-        transform:scale(1.15);
-    }
-    30%{
-        transform:scale(1);
-    }
-    45%{
-        transform:scale(1.08);
-    }
-}
-
-.final h3{
-    margin-top:40px;
-    font-size:clamp(27px,5vw,48px);
-    line-height:1.1;
-    letter-spacing:-2px;
-    font-weight:400;
-}
-
-.final h3 span{
-    color:var(--pink);
-}
-
-.final-sub{
-    width:min(450px,100%);
-    margin-top:25px;
-    color:#676771;
-    line-height:1.8;
-    font-size:14px;
-}
-
-.signature{
-    margin-top:45px;
-    color:#45454d;
-    font-family:"JetBrains Mono",monospace;
-    font-size:9px;
-    letter-spacing:3px;
-}
-
-.footer{
-    margin-top:40px;
-    padding-top:22px;
-    border-top:1px solid var(--line);
-    display:flex;
-    justify-content:space-between;
-    gap:20px;
-    color:#38383f;
-    font-family:"JetBrains Mono",monospace;
-    font-size:8px;
-    letter-spacing:1px;
-}
-
-@media(max-width:700px){
-
-    main{
-        width:calc(100% - 28px);
-        padding-bottom:max(60px,env(safe-area-inset-bottom));
+@keyframes orbFloat {
+    0%, 100% {
+        transform: translateY(0);
     }
 
-    .nav{
-        min-height:50px;
-        font-size:7px;
-        letter-spacing:1.4px;
-    }
-
-    .connection{
-        font-size:7px;
-        letter-spacing:1px;
-    }
-
-    .hero{
-        min-height:calc(100svh - 50px);
-        min-height:calc(100dvh - 50px);
-        padding:55px 0;
-    }
-
-    .hero-label{
-        font-size:8px;
-        letter-spacing:2px;
-        margin-bottom:24px;
-    }
-
-    .hero h1{
-        font-size:clamp(40px,12vw,62px);
-        letter-spacing:-3px;
-    }
-
-    .hero-description{
-        font-size:14px;
-        line-height:1.8;
-        margin-top:25px;
-    }
-
-    .scroll{
-        margin-top:45px;
-    }
-
-    .panel{
-        border-radius:22px;
-    }
-
-    .panel-header{
-        min-height:55px;
-        padding:14px 17px;
-        font-size:7px;
-        letter-spacing:1px;
-    }
-
-    .rows{
-        padding:7px 17px 12px;
-    }
-
-    .row{
-        min-height:64px;
-        font-size:9px;
-        gap:12px;
-    }
-
-    .result{
-        font-size:7px;
-        gap:6px;
-    }
-
-    .result-icon{
-        width:18px;
-        height:18px;
-        font-size:8px;
-    }
-
-    .message{
-        padding:110px 0 80px;
-    }
-
-    .message-label{
-        font-size:8px;
-        letter-spacing:2.5px;
-        margin-bottom:28px;
-    }
-
-    .message h2{
-        font-size:clamp(32px,9vw,48px);
-        letter-spacing:-2px;
-    }
-
-    .type-container{
-        font-size:14px;
-        line-height:1.9;
-        min-height:190px;
-        margin-top:32px;
-    }
-
-    .terminal{
-        margin-top:45px;
-        padding:18px 16px;
-        border-radius:17px;
-        font-size:8px;
-        line-height:2.2;
-        overflow:hidden;
-    }
-
-    .final{
-        min-height:75svh;
-        min-height:75dvh;
-        padding:60px 0;
-    }
-
-    .final-orb{
-        width:70px;
-        height:70px;
-        flex-basis:70px;
-    }
-
-    .final h3{
-        margin-top:32px;
-        font-size:clamp(27px,8vw,40px);
-        letter-spacing:-1.5px;
-    }
-
-    .final-sub{
-        font-size:13px;
-        line-height:1.8;
-    }
-
-    .signature{
-        font-size:8px;
-        letter-spacing:2px;
-    }
-
-    .footer{
-        flex-direction:column;
-        align-items:center;
-        text-align:center;
-        gap:9px;
-        padding-bottom:15px;
+    50% {
+        transform: translateY(-9px);
     }
 }
 
-@media(max-width:380px){
-
-    main{
-        width:calc(100% - 22px);
+@keyframes ring {
+    0%, 100% {
+        transform: scale(.96);
+        opacity: .4;
     }
 
-    .hero h1{
-        font-size:38px;
-    }
-
-    .hero-description{
-        font-size:13px;
-    }
-
-    .row{
-        font-size:8px;
-    }
-
-    .result{
-        font-size:6.5px;
-    }
-
-    .message h2{
-        font-size:30px;
-    }
-
-    .type-container{
-        font-size:13px;
-    }
-
-    .terminal{
-        font-size:7px;
+    50% {
+        transform: scale(1.05);
+        opacity: .8;
     }
 }
 
-@media(prefers-reduced-motion:reduce){
+.final h2 {
+    font-size: clamp(34px, 6vw, 65px);
+    letter-spacing: -.055em;
+    line-height: 1;
+    font-weight: 600;
+    margin-bottom: 22px;
+}
 
+.final p {
+    max-width: 550px;
+    margin: auto;
+    color: rgba(255,255,255,.38);
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.final-tag {
+    margin-top: 35px;
+    font-family: "JetBrains Mono", monospace;
+    color: rgba(255,255,255,.25);
+    font-size: 9px;
+    letter-spacing: .18em;
+}
+
+footer {
+    padding: 30px 0;
+    border-top: 1px solid rgba(255,255,255,.06);
+    color: rgba(255,255,255,.2);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8px;
+    letter-spacing: .13em;
+    text-align: center;
+}
+
+@media (max-width: 700px) {
+    .page {
+        width: min(100% - 28px, 1100px);
+    }
+
+    .nav {
+        height: 52px;
+    }
+
+    .nav-left {
+        font-size: 8px;
+    }
+
+    .nav-right {
+        font-size: 8px;
+    }
+
+    .hero {
+        min-height: 72vh;
+        padding: 75px 0 55px;
+    }
+
+    .hero h1 {
+        font-size: clamp(40px, 12vw, 62px);
+    }
+
+    .hero-sub {
+        font-size: 14px;
+        line-height: 1.75;
+        margin-top: 25px;
+    }
+
+    .scroll-indicator {
+        margin-top: 50px;
+    }
+
+    .section {
+        padding: 45px 0;
+    }
+
+    .diagnostic {
+        padding: 24px 20px;
+        border-radius: 22px;
+    }
+
+    .panel-top {
+        margin-bottom: 28px;
+    }
+
+    .scan-row {
+        font-size: 8px;
+        gap: 10px;
+    }
+
+    .message {
+        padding-left: 18px;
+    }
+
+    .typewriter {
+        font-size: 19px;
+        line-height: 1.65;
+    }
+
+    .terminal {
+        padding: 17px;
+        margin-top: 35px;
+        font-size: 8px;
+        line-height: 2.15;
+    }
+
+    .final {
+        min-height: 72vh;
+    }
+
+    .orb {
+        width: 90px;
+        height: 90px;
+    }
+
+    .final h2 {
+        font-size: 42px;
+    }
+
+    .final p {
+        font-size: 13px;
+        padding: 0 8px;
+    }
+}
+
+@media (max-width: 380px) {
+    .page {
+        width: calc(100% - 22px);
+    }
+
+    .hero h1 {
+        font-size: 38px;
+    }
+
+    .diagnostic {
+        padding: 20px 16px;
+    }
+
+    .scan-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .typewriter {
+        font-size: 17px;
+    }
+
+    .final h2 {
+        font-size: 36px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
     *,
     *::before,
-    *::after{
-        animation-duration:.01ms !important;
-        animation-iteration-count:1 !important;
-        scroll-behavior:auto !important;
-        transition-duration:.01ms !important;
+    *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
     }
 }
-
 </style>
 </head>
 
 <body>
 
-<div class="ambient"></div>
-<div class="grid"></div>
-<div class="noise"></div>
-
 <div class="boot" id="boot">
-
-    <div class="boot-content">
-
-        <div class="boot-top">
-            <span>PRIVATE TRANSMISSION</span>
-            <span>01</span>
-        </div>
-
+    <div class="boot-box">
+        <div class="boot-label">PRIVATE TRANSMISSION</div>
+        <div class="boot-title">For someone important.</div>
         <div class="boot-line">
-            <div class="boot-progress"></div>
+            <div class="boot-progress" id="bootProgress"></div>
         </div>
-
-        <div class="boot-text" id="bootText">
-            establishing connection...
-        </div>
-
+        <div class="boot-status" id="bootStatus">initializing...</div>
     </div>
-
 </div>
 
-<main>
+<div class="ambient">
+    <div class="glow one" id="glowOne"></div>
+    <div class="glow two" id="glowTwo"></div>
+</div>
+
+<div class="grid"></div>
+<div class="particles" id="particles"></div>
+
+<main class="page">
 
     <nav class="nav">
-
-        <span>FOR_YOU // PRIVATE</span>
-
-        <div class="connection">
-            <div class="connection-dot"></div>
+        <div class="nav-left">FOR_YOU // PRIVATE</div>
+        <div class="nav-right">
+            <div class="status-dot"></div>
             CONNECTION ACTIVE
         </div>
-
     </nav>
 
     <section class="hero">
-
-        <div class="hero-label">
-            THIS ISN'T A MESSAGE.<br>
-            IT'S A LITTLE PLACE TO BREATHE.
-        </div>
+        <div class="eyebrow">A LITTLE MESSAGE // 001</div>
 
         <h1>
             Hey maa,<br>
-            come here for a second.<br>
-            <span>forget everything else.</span>
+            come here for a second.
+            <span>Forget everything else.</span>
         </h1>
 
-        <p class="hero-description">
-            I know today wasn't kind to you.
-            So I made something small.
-            Nothing you have to answer.
-            Nothing you have to explain.
-            Just something I wanted you to have.
+        <p class="hero-sub">
+            You don't have to fix everything tonight.
+            You don't have to explain everything either.
+            Just stay here for a minute.
         </p>
 
-        <div class="scroll">
-            SCROLL SLOWLY
+        <div class="scroll-indicator">
             <div class="scroll-line"></div>
+            SCROLL SLOWLY
         </div>
-
     </section>
 
-    <section>
+    <section class="section">
 
-        <div class="panel">
+        <div class="diagnostic" id="diagnostic">
 
-            <div class="panel-header">
+            <div class="panel-top">
+                <div class="panel-title">HEART_DIAGNOSTIC.exe</div>
+                <div class="panel-state">RUNNING</div>
+            </div>
 
-                <span class="panel-title">
-                    / HEART_DIAGNOSTIC
-                </span>
+            <div class="scan">
 
-                <div class="scanning">
-                    <div class="scan-dot"></div>
-                    RUNNING
+                <div class="scan-row">
+                    <strong>"I am a failure"</strong>
+                    <span class="failed">NOT FOUND</span>
+                </div>
+
+                <div class="scan-row">
+                    <strong>"I am a bad daughter"</strong>
+                    <span class="failed">NOT FOUND</span>
+                </div>
+
+                <div class="scan-row">
+                    <strong>"One result defines me"</strong>
+                    <span class="failed">NOT FOUND</span>
+                </div>
+
+                <div class="scan-row">
+                    <strong>"Someone who believes in you"</strong>
+                    <span class="success">ME ✓</span>
                 </div>
 
             </div>
 
-            <div class="rows">
+            <div class="message">
 
-                <div class="row">
-                    <span>"I am a failure"</span>
-                    <div class="result false">
-                        <div class="result-icon">×</div>
-                        FALSE
-                    </div>
-                </div>
+                <div class="message-label">MESSAGE_DETECTED</div>
 
-                <div class="row">
-                    <span>"I am a bad daughter"</span>
-                    <div class="result false">
-                        <div class="result-icon">×</div>
-                        FALSE
-                    </div>
-                </div>
-
-                <div class="row">
-                    <span>"One result defines me"</span>
-                    <div class="result false">
-                        <div class="result-icon">×</div>
-                        FALSE
-                    </div>
-                </div>
-
-                <div class="row">
-                    <span>"I made a mistake"</span>
-                    <div class="result true">
-                        <div class="result-icon">✓</div>
-                        TRUE
-                    </div>
-                </div>
-
-                <div class="row">
-                    <span>"I can try again"</span>
-                    <div class="result true">
-                        <div class="result-icon">✓</div>
-                        TRUE
-                    </div>
-                </div>
-
-                <div class="row">
-                    <span>"I am worth believing in"</span>
-                    <div class="result true">
-                        <div class="result-icon">✓</div>
-                        TRUE
-                    </div>
-                </div>
+                <div class="typewriter" id="typewriter"></div>
 
             </div>
 
-        </div>
+            <div class="terminal" id="terminal">
 
-    </section>
+                <div class="terminal-line">
+                    &gt; checking emotional status...
+                    <span>FOUND</span>
+                </div>
 
-    <section class="message">
+                <div class="terminal-line">
+                    &gt; checking worth...
+                    <span>UNCHANGED</span>
+                </div>
 
-        <div class="message-label">
-            ONE THING I WANT YOU TO REMEMBER
-        </div>
+                <div class="terminal-line">
+                    &gt; checking future...
+                    <span>STILL LOADING</span>
+                </div>
 
-        <h2>
-            A bad day<br>
-            doesn't make you<br>
-            a <span>bad person.</span>
-        </h2>
+                <div class="terminal-line">
+                    &gt; checking someone who believes in you...
+                    <span>ME ✓</span>
+                </div>
 
-        <div class="type-container">
-            <span id="typed"></span>
-            <span class="cursor"></span>
-        </div>
+                <div class="terminal-line">
+                    &gt; final result...
+                    <span>YOU MATTER.</span>
+                </div>
 
-        <div class="terminal">
-
-            <div class="term-line" id="t1">
-                > checking your worth...
-                <span class="green">FOUND ✓</span>
-            </div>
-
-            <div class="term-line" id="t2">
-                > checking your future...
-                <span class="green">STILL THERE ✓</span>
-            </div>
-
-            <div class="term-line" id="t3">
-                > checking your dreams...
-                <span class="green">NOT DELETED ✓</span>
-            </div>
-
-            <div class="term-line" id="t4">
-                > checking "failure"...
-                <span class="pink">NOT FOUND</span>
-            </div>
-
-            <div class="term-line" id="t5">
-                > checking "bad daughter"...
-                <span class="pink">NOT FOUND</span>
-            </div>
-
-            <div class="term-line" id="t6">
-                > checking someone who believes in you...
-                <span class="green">ME ✓</span>
             </div>
 
         </div>
@@ -1028,228 +915,162 @@ main{
 
     <section class="final">
 
-        <div class="final-orb">
-            <div class="orb-heart">♡</div>
-        </div>
+        <div class="final-inner" id="final">
 
-        <h3>
-            You don't have to<br>
-            be okay right now.<br>
-            <span>Just be you.</span>
-        </h3>
+            <div class="orb"></div>
 
-        <p class="final-sub">
-            Take your time.
-            Breathe.
-            Rest.
-            You don't need to reply to this.
-            I just wanted you to know that someone
-            still believes in you.
-        </p>
+            <h2>
+                I’m still here.
+            </h2>
 
-        <div class="signature">
-            I'M STILL HERE.
+            <p>
+                You don't have to be okay right now.
+                You don't have to pretend that everything is fine.
+                Take your time. Breathe. Be yourself.
+                That's enough.
+            </p>
+
+            <div class="final-tag">
+                CONNECTION_STATUS // SAFE
+            </div>
+
         </div>
 
     </section>
 
-    <footer class="footer">
-        <span>TRANSMISSION COMPLETE</span>
-        <span>NO RESPONSE REQUIRED</span>
+    <footer>
+        END_OF_TRANSMISSION // FOR YOU
     </footer>
 
 </main>
 
 <script>
+const boot = document.getElementById("boot");
+const bootProgress = document.getElementById("bootProgress");
+const bootStatus = document.getElementById("bootStatus");
+const diagnostic = document.getElementById("diagnostic");
+const final = document.getElementById("final");
+const typewriter = document.getElementById("typewriter");
+const particles = document.getElementById("particles");
+const glowOne = document.getElementById("glowOne");
+const glowTwo = document.getElementById("glowTwo");
 
-for(let i=0;i<55;i++){
-
-    const particle=document.createElement("div");
-
-    particle.className="particle";
-
-    particle.style.left=Math.random()*100+"vw";
-
-    particle.style.animationDuration=
-        (8+Math.random()*18)+"s";
-
-    particle.style.animationDelay=
-        Math.random()*12+"s";
-
-    document.body.appendChild(particle);
-
-}
-
-const boot=document.getElementById("boot");
-const bootText=document.getElementById("bootText");
-
-const bootMessages=[
-    "establishing connection...",
-    "checking private channel...",
-    "connection secured.",
-    "loading something important...",
-    "ready."
+const bootMessages = [
+    "initializing...",
+    "loading private channel...",
+    "checking connection...",
+    "connection secured."
 ];
 
-let bootIndex=0;
+let bootIndex = 0;
 
-const bootInterval=setInterval(()=>{
+function createParticles() {
+    const count = window.innerWidth < 700 ? 35 : 70;
 
-    bootText.textContent=bootMessages[bootIndex];
+    for (let i = 0; i < count; i++) {
+        const particle = document.createElement("div");
+        particle.className = "particle";
+        particle.style.left = Math.random() * 100 + "%";
+        particle.style.animationDuration = 8 + Math.random() * 15 + "s";
+        particle.style.animationDelay = Math.random() * -20 + "s";
+        particle.style.opacity = .2 + Math.random() * .5;
+        particles.appendChild(particle);
+    }
+}
+
+function updateBoot() {
+    bootStatus.textContent = bootMessages[bootIndex];
+
+    bootProgress.style.width = ((bootIndex + 1) / bootMessages.length) * 100 + "%";
 
     bootIndex++;
 
-    if(bootIndex>=bootMessages.length){
-
-        clearInterval(bootInterval);
-
-        setTimeout(()=>{
-            boot.classList.add("hide");
-        },500);
-
+    if (bootIndex < bootMessages.length) {
+        setTimeout(updateBoot, 900);
+    } else {
+        setTimeout(() => {
+            boot.classList.add("hidden");
+            document.body.classList.add("loaded");
+            startExperience();
+        }, 1100);
     }
-
-},520);
-
-const rows=document.querySelectorAll(".row");
-
-const rowObserver=new IntersectionObserver(
-    entries=>{
-
-        if(entries[0].isIntersecting){
-
-            rows.forEach((row,index)=>{
-
-                setTimeout(()=>{
-                    row.classList.add("show");
-                },index*220);
-
-            });
-
-            rowObserver.disconnect();
-
-        }
-
-    },
-    {threshold:.2}
-);
-
-rowObserver.observe(document.querySelector(".panel"));
-
-const message=
-`Maa, I know today hurt.
-
-And I know words can sometimes become much louder in our heads than they deserve to be.
-
-But please don't let one result, one mistake, or one person's words become the definition of who you are.
-
-You are allowed to have a bad day.
-You are allowed to make mistakes.
-You are allowed to start again.
-
-You don't have to explain anything to me.
-
-Take your time.
-
-I'll still be here.`;
-
-const typed=document.getElementById("typed");
-
-let typedStarted=false;
-
-const typeObserver=new IntersectionObserver(
-    entries=>{
-
-        if(entries[0].isIntersecting && !typedStarted){
-
-            typedStarted=true;
-
-            let i=0;
-
-            function type(){
-
-                if(i<message.length){
-
-                    typed.textContent+=message.charAt(i);
-
-                    i++;
-
-                    let delay=24;
-
-                    if(message.charAt(i-1)==="."){
-                        delay=170;
-                    }
-
-                    if(message.charAt(i-1)==="\n"){
-                        delay=280;
-                    }
-
-                    setTimeout(type,delay);
-
-                }
-
-            }
-
-            type();
-
-            typeObserver.disconnect();
-
-        }
-
-    },
-    {threshold:.25}
-);
-
-typeObserver.observe(document.querySelector(".type-container"));
-
-const terminal=document.querySelector(".terminal");
-const terminalLines=document.querySelectorAll(".term-line");
-
-let terminalStarted=false;
-
-const terminalObserver=new IntersectionObserver(
-    entries=>{
-
-        if(entries[0].isIntersecting && !terminalStarted){
-
-            terminalStarted=true;
-
-            terminalLines.forEach((line,index)=>{
-
-                setTimeout(()=>{
-
-                    line.classList.add("show");
-
-                },index*600);
-
-            });
-
-            terminalObserver.disconnect();
-
-        }
-
-    },
-    {threshold:.3}
-);
-
-terminalObserver.observe(terminal);
-
-const ambient=document.querySelector(".ambient");
-
-if(window.matchMedia("(pointer:fine)").matches){
-
-    document.addEventListener("mousemove",e=>{
-
-        const x=(e.clientX/window.innerWidth-.5)*12;
-        const y=(e.clientY/window.innerHeight-.5)*12;
-
-        ambient.style.transform=
-            `translate(${x}px,${y}px)`;
-
-    });
-
 }
 
+function startExperience() {
+    setTimeout(() => {
+        diagnostic.classList.add("visible");
+        revealRows();
+    }, 900);
+
+    setTimeout(() => {
+        typeMessage();
+    }, 1500);
+
+    setTimeout(() => {
+        revealTerminal();
+    }, 9000);
+
+    setTimeout(() => {
+        final.classList.add("visible");
+    }, 13000);
+}
+
+function revealRows() {
+    const rows = document.querySelectorAll(".scan-row");
+
+    rows.forEach((row, index) => {
+        setTimeout(() => {
+            row.classList.add("show");
+        }, index * 450);
+    });
+}
+
+const message =
+"Listen to me for a second. One exam, one result, one bad day, or one mistake cannot decide who you are. You are allowed to be hurt. You are allowed to be disappointed. But please don't turn one moment into the definition of your whole life. You are still you. And I still believe in you.";
+
+let messageIndex = 0;
+
+function typeMessage() {
+    if (messageIndex < message.length) {
+        typewriter.innerHTML =
+            message.substring(0, messageIndex + 1) +
+            '<span class="cursor"></span>';
+
+        messageIndex++;
+
+        setTimeout(typeMessage, 38);
+    } else {
+        typewriter.innerHTML =
+            message +
+            '<span class="cursor"></span>';
+    }
+}
+
+function revealTerminal() {
+    const lines = document.querySelectorAll(".terminal-line");
+
+    lines.forEach((line, index) => {
+        setTimeout(() => {
+            line.classList.add("show");
+        }, index * 650);
+    });
+}
+
+createParticles();
+updateBoot();
+
+window.addEventListener("mousemove", event => {
+    if (window.innerWidth < 900) return;
+
+    const x = (event.clientX / window.innerWidth - .5) * 20;
+    const y = (event.clientY / window.innerHeight - .5) * 20;
+
+    glowOne.style.transform =
+        `translate(${x}px, ${y}px)`;
+
+    glowTwo.style.transform =
+        `translate(${-x}px, ${-y}px)`;
+});
 </script>
 
 </body>
